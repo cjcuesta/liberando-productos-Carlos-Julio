@@ -1,0 +1,35 @@
+version: 2.1
+
+orbs:
+  versioning: kollex/versioning@1.0.0
+
+executors:
+  python:
+    docker:
+      - image: python:3.8.11-alpine3.14 # the primary container, where your job's commands are run
+
+commands:
+  # A command named `echo` that runs the `echo` command
+  listar:
+    parameters:
+      message:
+        type: string
+        default: -l
+    steps:
+      - run: ls << parameters.message >>
+
+jobs:
+  test-job:
+    executor: python # use the `node` executor defined above
+    steps:
+      - checkout # check out the code in the project directory
+      - run: ls -l  # run the `echo` command
+      - listar: 
+          message: -la 
+
+workflows:
+  my-workflow:
+    jobs:
+      - test-job
+           
+
