@@ -35,7 +35,7 @@ jobs:
       - run: source venv/bin/activate 
       - run: pip3.8 install -r requirements.txt 
       - run: pytest -m "not integtest" --cov --cov-report=html  
-      - semantic-release/create_minimal_config_github
+      - semantic-release/create_changelog_config_github
 
 workflows:
   my-workflow:
