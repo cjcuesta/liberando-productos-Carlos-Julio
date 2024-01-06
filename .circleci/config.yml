@@ -23,6 +23,9 @@ jobs:
   test-job:
     executor: python # use the `node` executor defined above
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "48:c5:94:65:ce:3f:b3:63:bc:d0:03:f7:99:22:6b:5c"    
       - checkout # check out the code in the project directory
       - run: ls -l  # run the `echo` command
       - listar: 
@@ -32,23 +35,12 @@ jobs:
       - run: source venv/bin/activate 
       - run: pip3.8 install -r requirements.txt 
       - run: pytest -m "not integtest" --cov --cov-report=html  
+      - semantic-release/create_minimal_config_github
 
 workflows:
   my-workflow:
     jobs:
       - test-job
-  continious:
-    jobs:
-      - semantic-release/with_minimal_github_config:
-        add_ssh_keys:
-          fingerprints:  
-              - "48:c5:94:65:ce:3f:b3:63:bc:d0:03:f7:99:22:6b:5c"
-          filters:
-            branches:
-              only:
-                - main
-          name: semantic-release
-  version: 2
-
+  
            
 
