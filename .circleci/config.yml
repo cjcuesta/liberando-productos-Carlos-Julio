@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   semantic-release: trustedshops-public/semantic-release@6.0.0
-  
+  versioning: kollex/versioning@1.0.0  
 
 executors:
   python:
@@ -21,12 +21,18 @@ commands:
 
 jobs:
   test-job:
+    working_directory: ~/app1  
     executor: python # use the `node` executor defined above
     steps:
       - add_ssh_keys:
           fingerprints:
             - "48:c5:94:65:ce:3f:b3:63:bc:d0:03:f7:99:22:6b:5c"    
       - checkout # check out the code in the project directory
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}
+          # Si hay un cambio en las dependencias en proyectos java siempre van en el pom
+          - v1-dependencies-      
       - run: ls -l  # run the `echo` command
       - listar: 
           message: -la
@@ -36,11 +42,39 @@ jobs:
       - run: pip3.8 install -r requirements.txt 
       - run: pytest -m "not integtest" --cov --cov-report=html  
       - semantic-release/create_changelog_config_github
+      - persist_to_workspace:
+          root: .
+          paths: ./
+
+  build:
+    working_directory: ~/app1
+    machine:
+      image: ubuntu-2204:2022.04.2
+    steps:
+    - attach_workspace:
+        at: .
+    - run:
+        name: Visualizacion de los archivos
+        command: ls -l ~/app1/
+    - versioning/define_version        
+    - run: 
+        name: Publish Docker Image to Docker Hub
+        command: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          ##docker build -t $IMAGE_NAME:$DOCKER_TAG .
+          docker build -t $DOCKERHUB_USERNAME/fa:$DOCKER_TAG .
+          docker push $DOCKERHUB_USERNAME/fa:$DOCKER_TAG        
+
+
 
 workflows:
   my-workflow:
     jobs:
       - test-job
+      - build:
+          requires:
+            - test-job 
+  version: 2
   
            
 
