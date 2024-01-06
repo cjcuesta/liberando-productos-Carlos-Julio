@@ -1,7 +1,8 @@
 version: 2.1
 
 orbs:
-  versioning: kollex/versioning@1.0.0
+  semantic-release: trustedshops-public/semantic-release@6.0.0
+  
 
 executors:
   python:
@@ -36,5 +37,15 @@ workflows:
   my-workflow:
     jobs:
       - test-job
+  continious:
+    jobs:
+      - semantic-release/with_changelog_github_config:
+          filters:
+            branches:
+              only:
+                - main
+          name: semantic-release
+  version: 2
+
            
 
