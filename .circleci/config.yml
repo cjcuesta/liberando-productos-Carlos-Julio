@@ -39,7 +39,7 @@ workflows:
       - test-job
   continious:
     jobs:
-      - semantic-release/with_changelog_github_config:
+      - semantic-release/with_minimal_github_config:
           filters:
             branches:
               only:
