@@ -25,7 +25,12 @@ jobs:
       - checkout # check out the code in the project directory
       - run: ls -l  # run the `echo` command
       - listar: 
-          message: -la 
+          message: -la
+      - run: pip3.8 install virtualenv  
+      - run: python3.8 -m venv venv  
+      - run: source venv/bin/activate 
+      - run: pip3.8 install -r requirements.txt 
+      - run: pytest -m "not integtest" --cov --cov-report=html  
 
 workflows:
   my-workflow:
