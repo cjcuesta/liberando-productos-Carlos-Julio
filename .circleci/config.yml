@@ -56,7 +56,11 @@ jobs:
     - run:
         name: Visualizacion de los archivos
         command: ls -l ~/app1/
-    - versioning/define_version        
+    - versioning/define_version     
+    - versioning/print_version
+    - versioning/print_docker_tag 
+    - run: echo $DOCKER_TAG
+    - run: echo $VERSION 
     - run: 
         name: Publish Docker Image to Docker Hub
         command: |
@@ -74,7 +78,10 @@ workflows:
       - build:
           requires:
             - test-job 
-  version: 2
+          filters:
+            tags:
+              only: /.*/            
+ 
   
            
 
