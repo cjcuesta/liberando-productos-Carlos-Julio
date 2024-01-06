@@ -61,13 +61,13 @@ jobs:
     - versioning/print_docker_tag 
     - run: echo $DOCKER_TAG
     - run: echo $VERSION 
-#    - run: 
-#        name: Publish Docker Image to Docker Hub
-#        command: |
-#          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    - run: 
+        name: Publish Docker Image to Docker Hub
+        command: |
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
           ##docker build -t $IMAGE_NAME:$DOCKER_TAG .
-#          docker build -t $DOCKERHUB_USERNAME/kc-devops-8-simple-fast-api:$DOCKER_TAG .
-#          docker push $DOCKERHUB_USERNAME/kc-devops-8-simple-fast-api:$DOCKER_TAG         
+          docker build -t $DOCKERHUB_USERNAME/kc-devops-8-simple-fast-api:$DOCKER_TAG .
+          docker push $DOCKERHUB_USERNAME/kc-devops-8-simple-fast-api:$DOCKER_TAG         
 
 
 
@@ -75,10 +75,10 @@ workflows:
   my-workflow:
     when: << pipeline.git.tag >>
     jobs:
-#      - test-job
+      - test-job
       - build:
-#          requires:
-#            - test-job 
+          requires:
+            - test-job 
           filters:
             tags:
               only: /.*/            
