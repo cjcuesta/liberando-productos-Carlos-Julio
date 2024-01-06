@@ -75,7 +75,10 @@ workflows:
   my-workflow:
     when: << pipeline.git.tag >>
     jobs:
-      - test-job
+      - test-job:
+          filters:
+            tags:
+              only: /.*/            
       - build:
           requires:
             - test-job 
