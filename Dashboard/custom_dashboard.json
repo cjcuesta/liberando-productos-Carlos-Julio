@@ -151,15 +151,15 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum(last_over_time(students_create_total[$__rate_interval])) by (pod)",
+          "expr": "sum(last_over_time(BYE_requests_total[$__rate_interval])) by (pod)",
           "format": "time_series",
           "interval": "",
-          "legendFormat": "{{pod}} calls create students",
+          "legendFormat": "{{pod}} calls to BYE",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Number of calls to create student",
+      "title": "Number of calls to BYE",
       "type": "stat"
     },
     {
