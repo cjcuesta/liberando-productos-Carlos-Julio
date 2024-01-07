@@ -141,3 +141,5 @@ dmypy.json
 *.tfstate.backup
 .terraform.tfstate.lock.info
 .terraform
+
+coverage_html_report
