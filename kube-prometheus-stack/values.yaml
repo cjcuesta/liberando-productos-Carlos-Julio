@@ -106,7 +106,7 @@ alertmanager:
     - name: 'null'
     - name: 'slack'
       slack_configs:
-      - api_url: 'https://hooks.slack.com/services/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' # <--- AÑADIR EN ESTA LÍNEA EL WEBHOOK CREADO
+      - api_url: '' # <--- AÑADIR EN ESTA LÍNEA EL WEBHOOK CREADO
         send_resolved: true
         channel: '#alarms-notifications-keepcoding-devops-8' # <--- AÑADIR EN ESTA LÍNEA EL CANAL
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
@@ -129,17 +129,9 @@ additionalPrometheusRulesMap:
     groups:
       - name: ruleset_1
         rules:
-          - alert: MongoDBDown
-            expr: mongodb_up == 0
-            for: 0m
-            labels:
-              severity: critical
-            annotations:
-              summary: MongoDB Down (instance {{ $labels.instance }})
-              description: "MongoDB instance is down"
 
           - alert: fastApiConsumingMoreThanRequest
-            expr: avg(container_memory_usage_bytes{pod=~"my-app-fast-api-webapp-.*"}) by (pod) > avg(kube_pod_container_resource_requests{resource="memory",container="fast-api-webapp"}) by (pod)
+            expr: avg(container_memory_usage_bytes{pod=~".*-my-app-fast-api-webapp-.*"}) by (pod) > avg(kube_pod_container_resource_requests{resource="memory",container="fast-api-webapp"}) by (pod)
             for: 0m
             labels:
               severity: critical
@@ -148,6 +140,18 @@ additionalPrometheusRulesMap:
               summary: Pod {{ $labels.pod }} consuming more than requested
               description: "Pod more less than request"
               message: Pod {{ $labels.pod }} is consuming more than requested
+
+          - alert: fastApiConsumingMoreThanRequestCPU
+            expr: sum(rate(container_cpu_usage_seconds_total{pod=~".*-fast-api-webapp-.*"}[5m])) by (pod) > avg(kube_pod_container_resource_requests{resource="cpu",container="fast-api-webapp"}) by (pod)
+            for: 0m
+            labels:
+              severity: critical
+              alertname: "fast-api-webapp container is consuming more than requested cpu"
+            annotations:
+              summary: Pod {{ $labels.pod }} consuming more than requested
+              description: "Pod more less than request"
+              message: Pod {{ $labels.pod }} is consuming more than requested
+
 
 grafana:
   plugins:
