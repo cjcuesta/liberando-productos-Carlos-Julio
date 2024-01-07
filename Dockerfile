@@ -4,7 +4,7 @@ WORKDIR /service/app
 
 COPY requirements.txt /service/app
 COPY application /service/app/application
-COPY config /service/app/config
+#COPY config /service/app/config
 COPY app.py /service/app
 
 RUN apk --no-cache add curl build-base npm

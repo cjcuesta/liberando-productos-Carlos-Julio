@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata: 
+  name: fast-api
+  namespace: argocd
+spec: 
+  destination: 
+    namespace: fast-api
+    server: "https://kubernetes.default.svc"
+  project: default
+  source: 
+    path: fast-api-webapp
+    repoURL: "https://github.com/cjcuesta/helm_argocd.git"
+    ##targetRevision: master
+    #helm:
+    # releaseName: my-release
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
