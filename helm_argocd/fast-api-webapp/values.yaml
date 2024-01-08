@@ -9,7 +9,7 @@ image:
   repository: cjcuesta/kc-devops-8-simple-fast-api
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "beta"
+  tag: v0.0.6
 
 # imagePullSecrets created to use Docker Hub Private Account
 imagePullSecrets:
