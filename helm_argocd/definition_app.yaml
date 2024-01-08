@@ -11,10 +11,6 @@ spec:
   source: 
     path: helm_argocd/fast-api-webapp
     repoURL: "https://github.com/cjcuesta/liberando-productos-Carlos-Julio.git"
-    #repoURL: "https://github.com/cjcuesta/helm_argocd.git"
-    ##targetRevision: master
-    #helm:
-    # releaseName: my-release
   syncPolicy:
     automated: {} 
     syncOptions:

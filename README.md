@@ -107,6 +107,14 @@ helm -n monitoring upgrade \
     --create-namespace \
     --wait --version 55.4.0
 ```	
+El archivo values.yml fue modificado para que envie una alarma cuando se supera el promedio de CPU. Esto esta de las lineas 144 a 153. 
+El archivo esta ubicado en la ruta **kube-prometheus-stack/values.yaml**
+```
+...
+expr: sum(rate(container_cpu_usage_seconds_total{pod=~".*-fast-api-webapp-.*"}[5m])) by (pod) > avg(kube_pod_container_resource_requests{resource="cpu",container="fast-api-webapp"}) by (pod)
+...
+```
+
 Realizar split de la terminal o crear una nueva pestaña y ver como se están creando pod en el namespace monitoring utilizado para desplegar el stack de prometheus:
 
 ```
@@ -115,60 +123,102 @@ kubectl -n monitoring get po -w
 
 ### Se crea la aplicacion en ArgoCD
 
+Para el despliegue de la aplicacion se creo el arhivo definition_app.yaml
+que se encuentra en la ruta: helm_argocd/definition_app.yaml  
 ```
-k apply -f definition_app.yaml 
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata: 
+  name: fast-api
+  namespace: argocd
+spec: 
+  destination: 
+    namespace: fast-api
+    server: "https://kubernetes.default.svc"
+  project: default
+  source: 
+    path: helm_argocd/fast-api-webapp
+    repoURL: "https://github.com/cjcuesta/liberando-productos-Carlos-Julio.git"
+  syncPolicy:
+    automated: {} 
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
 ```
 
-# para sincronizar desde la linea de comandos 
+Esta es la instrucción de aplicación 
+```
+k apply -f helm_argocd/definition_app.yaml 
+```
+
+para sincronizar desde la linea de comandos 
+```
 argocd app sync argocd/fast-api
-
-# para si la aplicacion fue creada
+```
+para si la aplicacion fue creada
+```
 argocd app list
-
-# para borrar la aplicacion 
+```
+para borrar la aplicacion 
+```
 argocd app delete argocd/fast-api
-
+```
 Hacer split de la terminal o crear una nueva pestaña en la misma y observar como se crean los pods en el namespace fast-api donde se ha desplegado el web server:
-
+```
 kubectl -n fast-api get po -w
-
+```
 
 Obtener los logs del contenedor fast-api-webapp del deployment my-app-fast-api-webapp en el namespace fast-api, observar como está arrancando el servidor fast-api:
-
+```
 kubectl -n fast-api logs -f deployment/my-app-fast-api-webapp -c fast-api-webapp
-
+```
 Debería obtenerse un resultado similar al siguiente:
 [2022-11-09 11:28:12 +0000] [1] [INFO] Running on http://0.0.0.0:8081 (CTRL + C to quit)
 
 
 Abrir una nueva pestaña en la terminal y realizar un port-forward al Service creado para nuestro servidor:
-
+```
 kubectl -n fast-api port-forward svc/fast-api-fast-api-webapp 8081:8081
-
+```
+### Continuación de validación y apertura  de puertos
 Abrir una nueva pestaña en la terminal y realizar un port-forward al Service creado para que nuestro servidor envie las metricas
-
+```
 kubectl -n fast-api port-forward svc/fast-api-fast-api-webapp 8000:8000
-
+```
 Empezar a realizar diferentes peticiones al servidor de fastapi, es posible ver los endpoints disponibles y realizar peticiones 
 a los mismos a través de la URL http://localhost:8081/docs utilizando swagger
 
 Abrir una nueva pestaña en la terminal y realizar un port-forward del puerto http-web del servicio de Grafana al puerto 3000 de la máquina:
-
+```
 kubectl -n monitoring port-forward svc/prometheus-grafana 3000:http-web
-
+```
 Abrir otra pestaña en la terminal y realizar un port-forward del servicio de Prometheus al puerto 9090 de la máquina:
-
+```
 kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090
-
+```
 Acceder a la dirección http://localhost:3000 en el navegador para acceder a Grafana, las credenciales por defecto son admin para el usuario 
 y prom-operator para la contraseña.
 
 Acceder a la dirección http://localhost:9090 para acceder al Prometheus, por defecto no se necesita autenticación.
 
-En grafana se carga el archivo que se encuentra en la carpeta custom_dashboard.json 
+### Dashboard
+En grafana se carga el archivo **custom_dashboard.json** que se encuentra en la ruta **Dashboard/custom_dashboard.json** 
 
-Si se quiere disparar la integracion se hace un cambio en el codigo del repo y luego 
+Este archivo fue modificado para muestre el total de llamados al servicio BYE. Esto fue colocado en la linea 154. 
 
+```
+...
+"expr": "sum(last_over_time(BYE_requests_total[$__rate_interval])) by (pod)",
+...
+```
+
+### Circle CI
+En la carpeta **.circleci** se encuentra  el archivo **config.yml** usado  para
+la realizar los test, la generación de la componente y el push de la imagen a Dockerhub. Se encuentra en la ruta **.circleci/config.yml**.
+
+Si se quiere disparar la integracion se hace un cambio en el codigo del repo  y luego: 
+
+```
 circleci config validate .circleci/config.yml && \
 git pull && \
 git add . && \
@@ -176,6 +226,6 @@ git commit -m "Prueba tags 2" && \
 git push && \
 git tag v0.0.2 && \
 git push --tag
-
-
+```
+Si se hace un cambio en los helm de la aplicación argo lo detectará y lo desplegará automaticamente. 
 
