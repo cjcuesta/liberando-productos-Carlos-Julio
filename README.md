@@ -1,88 +1,123 @@
 # liberando-productos-Carlos-Julio
 
-Tener instalado Docker
-Tener instalado Kubectl
-Tener instalado Minikube 
-Tener instalado Helm
-Tener instalado argocd CLI
+## Requisitos
+- Tener instalado Docker
+- Tener instalado Kubectl
+- Tener instalado Minikube 
+- Tener instalado Helm
+- Tener instalado argocd CLI
 
+## Repositorios
 Repo de GIT: https://github.com/cjcuesta/liberando-productos-Carlos-Julio.git
+
 Repo de CircleCI: https://app.circleci.com/pipelines/github/cjcuesta/liberando-productos-Carlos-Julio
 
-Descargar el repositorio de Git.
 
 
-Para ver los perfiles creados
-minikube profile list 
+## Instalación del escenario
+Descargar el repositorio de Git. 
+```
+git clone https://github.com/cjcuesta/liberando-productos-Carlos-Julio.git 
+```
+Se ingresa a la carpeta del repositorio 
+```
+cd https://github.com/cjcuesta/liberando-productos-Carlos-Julio 
+```
+**lo anterior es necesario para encontrar los archivos necesario en las siguientes instalaciones**
 
-Para borrar los perfiles o clusters que no se usan o que se desean borrar
-minikube -p nombreperfil delete 
-
-minikube -p liberando-productos-cj delete  
-
+### Creación del cluster en Minikube
 Se crea el perfil. 
-
+```
 minikube start --kubernetes-version='v1.28.3' \
     --cpus=6 \
     --memory=5120 \
     --addons="metrics-server,default-storageclass,storage-provisioner,ingress,ingress-dns" \
     -p liberando-productos-cj
+```
+Para ver los perfiles creados
+```
+minikube profile list 
+```
+Para borrar los perfiles o clusters que no se usan o que se desean borrar
+```
+minikube -p nombreperfil delete 
+```
+```
+minikube -p liberando-productos-cj delete  
+```
 
-# Para ver los contextos
+Para ver los contextos
+``` 
 kctx
+```
+### Instalación ArgoCD
 
-# Baja el repo de helm
+Baja el repo de helm
+```
 helm repo add argo https://argoproj.github.io/argo-helm
-
-# Actualiza el repo de helm
+```
+Actualiza el repo de helm
+```
 helm repo update
-
-# Instala  ArgoCD
+```
+Instala  ArgoCD
+```
 helm -n argocd upgrade --install argocd argo/argo-cd --create-namespace --wait --version 3.26.3
-
-# Se espera a que los PODs de ArgoCD esten desplegados
+```
+Se espera a que los PODs de ArgoCD esten desplegados
+```
 k -n argocd get pods -w
+```
 
-# Se hace un se hace un port forward para que se  pueda ver el administrativo de ArgoCD
+Se hace un se hace un port forward para que se  pueda ver el administrativo de ArgoCD
+```
 kubectl -n argocd port-forward service/argocd-server 8085:443
+```
 
-# Se abre el administrativo de ArgoCD 
-http://localhost:8085 
+Se abre el administrativo de ArgoCD  [http://localhost:8085](http://localhost:8085)
 
 Obtenemos el pasword del admin de ArgoCD
+```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 
 > kIxfe07MZ6o585Jy
-
+```
 Si se tiene ArgoCD CLI
+```
 argocd login localhost:8085 --insecure
  Username: admin
- Password: kIxfe07MZ6o585Jy
- 
-argocd app delete argocd/fast-api
+ Password: 
+```
 
+### Instalación Prometheus
 Añadir el repositorio de helm prometheus-community para poder desplegar el chart kube-prometheus-stack:
-
+```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-
+```
+```
 helm repo update
-
+```
 Desplegar el chart kube-prometheus-stack del repositorio de helm añadido en el paso anterior con los valores 
 configurados en el archivo kube-prometheus-stack/values.yaml en el namespace monitoring:
 
+```
 helm -n monitoring upgrade \
     --install prometheus \
     prometheus-community/kube-prometheus-stack \
     -f kube-prometheus-stack/values.yaml \
     --create-namespace \
     --wait --version 55.4.0
-	
+```	
 Realizar split de la terminal o crear una nueva pestaña y ver como se están creando pod en el namespace monitoring utilizado para desplegar el stack de prometheus:
 
+```
 kubectl -n monitoring get po -w
+```
 
+### Se crea la aplicacion en ArgoCD
 
-# Se crea la aplicacion en ArgoCD
+```
 k apply -f definition_app.yaml 
+```
 
 # para sincronizar desde la linea de comandos 
 argocd app sync argocd/fast-api
