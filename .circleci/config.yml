@@ -20,6 +20,34 @@ commands:
       - run: ls << parameters.message >>
 
 jobs:
+
+  versiona:
+    docker:
+      - image: circleci/python:3.6-stretch
+    steps:
+      # Move the repository code to our home directory in the CircleCI build
+      - checkout
+      # Add deployment key fingerprint for CircleCI to use for a push
+      - add_ssh_keys:
+          fingerprints:
+            - "48:c5:94:65:ce:3f:b3:63:bc:d0:03:f7:99:22:6b:5c"
+            #- "0d:c6:2b:93:38:34:5b:88:3f:2e:5c:c3:6f:46:a4:a5"
+      - versioning/define_version
+      - versioning/print_version
+      - versioning/print_docker_tag 
+      - run: echo $DOCKER_TAG
+      - run: echo $VERSION 
+      - run: ls -l 
+      - run: git config user.email "$GIT_CORREO"
+      - run: git config user.name "$GIT_USER"
+      - run: git checkout main
+      - run: |
+             sed -e "s/tag: .*/tag: $DOCKER_TAG/g" -i helm_argocd/fast-api-webapp/values.yaml
+      - run: cat helm_argocd/fast-api-webapp/values.yaml
+      - run: git add .
+      - run: git commit -m "circleci $DOCKER_TAG"      
+      - run: git push
+
   test-job:
     working_directory: ~/app1  
     executor: python # use the `node` executor defined above
@@ -84,7 +112,13 @@ workflows:
             - test-job 
           filters:
             tags:
-              only: /.*/            
+              only: /.*/           
+      - versiona:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/               
  
   
            
